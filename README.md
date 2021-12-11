@@ -1,2 +1,2 @@
 # Solidity_Party
-# First Solidity Programming
+## First Solidity Programming
