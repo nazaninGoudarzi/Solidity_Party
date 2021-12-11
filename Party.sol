@@ -6,8 +6,10 @@ contract Party {
     mapping(address => uint) moneyTable;
     uint startTime;
     uint numOfGuest = 50;
+    uint numOfParticipants = 0;
     address owner;
     address[] guests;
+    bool[] temp;
 
     //event declaration
     event stateChange (State);
@@ -38,7 +40,15 @@ contract Party {
     function partyDay () public {
         if (state != State.attend) {return;}
         else {
-                guests = [msg.sender];
+                guests[numOfParticipants] = msg.sender;
+                for (uint i = 0; i < 50; i++) {
+                    if(address(moneyTable[i]) == guests[numOfParticipants]){
+                        temp[i] = true; 
+                    }
+                    else
+                        temp[i] = false;
+                }
+                numOfParticipants ++;
         }
     }
 
@@ -46,9 +56,6 @@ contract Party {
     function reward () internal {
         if (msg.sender != owner) {return;}
         else {
-                for (uint i = 0; i < 50 ; i++) {
-                    
-                }
         }
     }
 }
