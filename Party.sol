@@ -1,61 +1,69 @@
 pragma solidity 0.8.7;
 
 contract Party {
-    enum State {reg,attend}
+    //declaration
+    /*enum State {reg,attend}
     State public state = State.reg;
-    mapping(address => uint) moneyTable;
-    uint startTime;
-    uint numOfGuest = 50;
+    uint startTime;*/
+    uint numOfGuest = 0;
+    uint numOfReg;
     uint numOfParticipants = 0;
+    uint totalMoney = 0;
     address owner;
-    address[] guests;
-    bool[] temp;
+    struct Table {
+        address adders;
+        uint money;
+    }
+    Table[] moneyTable;
+    Table[] participants;
 
-    //event declaration
-    event stateChange (State);
 
     // initiating the owner of the party
-    constructor() public {
+    constructor(uint number) public {
         owner = msg.sender;
-        state = State.reg;
-        startTime = block.timestamp;
+        //state = State.reg;
+        ///startTime = block.timestamp;
+        numOfReg = number;
     }
 
     //guests will pay money and register
     function registration () public payable {
-        if (block.timestamp > (startTime+ 10 seconds)) {
+        if (state != State.reg) {return;}
+        else if (numOfGuest <= numOfReg) {
+                moneyTable[numOfGuest].adders = msg.sender;
+                moneyTable[numOfGuest].money = msg.value;
+                totalMoney += msg.value;
+                numOfGuest ++;
+        }
+        if (block.timestamp > (startTime+ 50 seconds)) {
                 state = State.attend; 
                 startTime = block.timestamp;
             }
-        if (state != State.reg) {return;}
-        else {
-                moneyTable[msg.sender] = msg.value;
-        }
-        if(state == State.attend) {
-                emit stateChange (state);
-        }
     }
 
     //saving guests address
     function partyDay () public {
         if (state != State.attend) {return;}
         else {
-                guests[numOfParticipants] = msg.sender;
+                participants[numOfParticipants].adders = msg.sender;
                 for (uint i = 0; i < 50; i++) {
-                    if(address(moneyTable[i]) == guests[numOfParticipants]){
-                        temp[i] = true; 
+                    if(moneyTable[i].adders == msg.sender){
+                        participants[numOfParticipants].money = moneyTable[i].money;
+                        totalMoney -= moneyTable[i].money;
+                        numOfParticipants ++; 
                     }
-                    else
-                        temp[i] = false;
                 }
-                numOfParticipants ++;
         }
     }
 
     //computation and giving rewards
-    function reward () internal {
+    function reward () public {
         if (msg.sender != owner) {return;}
         else {
+            uint additionMoney = totalMoney/numOfParticipants;
+            for (uint i = 0; i < numOfParticipants; i++) {
+                participants[i].money += additionMoney;
+                }
         }
     }
 }
