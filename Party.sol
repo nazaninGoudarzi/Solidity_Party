@@ -1,9 +1,8 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.7;
 
 contract Party {
     //declaration
-    enum State {reg,attend}
-    State public state;
     uint numOfGuest;
     uint numOfReg = 0;
     uint numOfParticipants = 0;
@@ -18,30 +17,26 @@ contract Party {
 
 
     // initiating the owner of the party
-    constructor(uint number) public {
+    constructor(uint number) {
         owner = msg.sender;
-        state = State.reg;
         numOfGuest = number;
     }
 
     //guests will pay money and register
-    function registration (address regAddress , uint regMoney) public payable {
-        if (state != State.reg) {return;}
-        else if (state == State.reg && numOfReg <= numOfGuest) {
-            moneyTable[numOfGuest].adders = regAddress;
-            moneyTable[numOfGuest].money = regMoney;
-            totalMoney += regMoney;
-            numOfGuest ++;
-        }
-        else if (numOfReg > numOfGuest) {
-            state = State.attend;
+    function registration () external payable {
+        require(numOfReg < numOfGuest, 'If you have already registered, you can use the partyDay to participate in the party!');
+        if (numOfReg < numOfGuest) {
+            moneyTable[numOfGuest].adders = msg.sender;
+            moneyTable[numOfGuest].money = msg.value;
+            totalMoney += msg.value;
+            numOfReg ++;
         }
     }
 
     //saving guests address
     function partyDay (address participentAddress) public {
-        if (state != State.attend) {return;}
-        else if (state == State.attend && numOfParticipants <= numOfReg) {
+        require(numOfParticipants < numOfReg, 'You have not already registered for the party!');
+        if (numOfParticipants < numOfReg) {
             participants[numOfParticipants].adders = participentAddress;
             for (uint i = 0; i < numOfGuest; i++) {
                 if(moneyTable[i].adders == participentAddress){
@@ -51,21 +46,18 @@ contract Party {
                 }
             }
         }
-        else if (numOfParticipants > numOfReg) {return;}
     }
 
     //computation and giving rewards
     function reward (address host) public {
-        if (host != owner) {return;}
-        else {
-            uint additionMoney = totalMoney/numOfParticipants;
-            for (uint i = 0; i < numOfParticipants; i++) {
-                participants[i].money += additionMoney;
-                }
+        require(host == owner, 'You are not the host of the party!');
+        uint additionMoney = totalMoney/numOfParticipants;
+        for (uint i = 0; i < numOfParticipants; i++) {
+            participants[i].money += additionMoney;
         }
     }
 
     // this function enables the contract to receive funds
-    receive() external payable {
+    receive () external payable {
     }
 }
