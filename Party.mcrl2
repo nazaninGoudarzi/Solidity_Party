@@ -1,0 +1,22 @@
+act
+	error,addNew,eliminating,moneyDivision,call_reward,get_reward,putReward;
+	call_registration,get_registration,reg,call_partyDay,get_patyDay,partyPeople : Int;
+proc
+	user(value:Int,address:Int) = (call_registration(value) + call_partyDay(address));
+	
+	owner = call_reward;
+	
+	% error if numOfReg >= numOfGuest
+	Registration(value:Int) = get_registration(value).(error + addNew);
+	
+	% error if numOfParticipants < numOfReg
+	PartyDay(address:Int) = get_patyDay(address).(error + eliminating);
+	
+	Reward = get_reward.moneyDivision;
+
+init
+	%hide({},
+		allow({reg,partyPeople,putReward},
+			comm({call_registration|get_registration -> reg,call_partyDay|get_patyDay -> partyPeople,
+					call_reward|get_reward -> putReward},
+				user(100,2500) || owner || Registration(100) || PartyDay(2500) || Reward));
